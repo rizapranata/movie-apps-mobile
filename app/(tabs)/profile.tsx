@@ -1,15 +1,18 @@
+import { ThemedScreen } from "@/components/ThemedScreen";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import React from "react";
-import { View, Text, useColorScheme } from "react-native";
+import { useColorScheme } from "react-native";
 
 function Profile() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemedView>
-      <ThemedText type="subtitle">Profile Movie</ThemedText>
-    </ThemedView>
+    <ThemedScreen>
+      <ThemedView>
+        <ThemedText type="subtitle">Profile Movie</ThemedText>
+      </ThemedView>
+    </ThemedScreen>
   );
 }
 

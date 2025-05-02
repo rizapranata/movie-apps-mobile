@@ -12,7 +12,7 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { store } from "@/redux/store";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -23,6 +23,8 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+
+  console.log("colorscheme:", colorScheme);
 
   useEffect(() => {
     if (loaded) {
@@ -38,17 +40,15 @@ export default function RootLayout() {
     <Provider store={store}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <SafeAreaProvider>
-          <SafeAreaView style={{ flex: 1 }}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar
-              translucent
-              backgroundColor={DarkTheme.colors.background}
-              style={colorScheme === "dark" ? "dark" : "light"}
-            />
-          </SafeAreaView>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar
+            translucent={false}
+            backgroundColor="transparent"
+            style={colorScheme === "dark" ? "light" : "dark"}
+          />
         </SafeAreaProvider>
       </ThemeProvider>
     </Provider>

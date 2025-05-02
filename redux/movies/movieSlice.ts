@@ -1,15 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { PlayNowMovies } from "../models/moviesPlayNow.Model";
-import { fetchNowPlayingMovies } from "./moviesApi";
+import { Movies } from "../models/moviesModel";
+import { fetchDynamicLinkMovies, fetchTopRatedMovies } from "./moviesApi";
 
 interface MovieState {
-  moviesPlayNow: PlayNowMovies;
+  moviesTopRated: Movies;
+  moviesDynamicLink: Movies;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: MovieState = {
-  moviesPlayNow: {
+  moviesTopRated: {
     dates: {
       maximum: new Date().toISOString(),
       minimum: new Date().toISOString(),
@@ -21,6 +22,16 @@ const initialState: MovieState = {
   },
   loading: false,
   error: null,
+  moviesDynamicLink: {
+    dates: {
+      maximum: new Date().toISOString(),
+      minimum: new Date().toISOString(),
+    },
+    page: 0,
+    results: [],
+    total_pages: 0,
+    total_results: 0,
+  },
 };
 
 const moviesSlice = createSlice({
@@ -29,15 +40,27 @@ const moviesSlice = createSlice({
   reducers: {},
   extraReducers(builder) {
     builder
-      .addCase(fetchNowPlayingMovies.pending, (state) => {
+      .addCase(fetchDynamicLinkMovies.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchNowPlayingMovies.fulfilled, (state, action) => {
-        state.moviesPlayNow = action.payload;
+      .addCase(fetchDynamicLinkMovies.fulfilled, (state, action) => {
+        state.moviesDynamicLink = action.payload;
         state.loading = false;
       })
-      .addCase(fetchNowPlayingMovies.rejected, (state, action) => {
+      .addCase(fetchDynamicLinkMovies.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchTopRatedMovies.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTopRatedMovies.fulfilled, (state, action) => {
+        state.moviesTopRated = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchTopRatedMovies.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

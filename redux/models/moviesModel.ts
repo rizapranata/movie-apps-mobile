@@ -1,7 +1,7 @@
-export interface PlayNowMovies {
-  dates:         Dates;
+export interface Movies {
+  dates?:         Dates;
   page:          number;
-  results:       Movies[];
+  results:       MoviesItem[];
   total_pages:   number;
   total_results: number;
 }
@@ -11,7 +11,7 @@ export interface Dates {
   minimum: string;
 }
 
-export interface Movies {
+export interface MoviesItem {
   adult:             boolean;
   backdrop_path:     string;
   genre_ids:         number[];
