@@ -11,7 +11,8 @@ import {
 import { AppDispatch, RootState } from "@/redux/store";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import debounce from "lodash.debounce";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -30,18 +31,20 @@ import { useDispatch, useSelector } from "react-redux";
 export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const [query, setQueary] = useState<string>();
   const [activeList, setActiveList] = useState<string>("now-playing");
   const [activeLink, setActiveLink] = useState<string>("/movie/now_playing");
 
-  const { moviesDynamicLink, moviesTopRated, loading, error } = useSelector(
-    (state: RootState) => state.movies
-  );
+  const {
+    moviesDynamicLink,
+    moviesTopRated,
+    loading,
+    error,
+    pageMoviesDynamicLink,
+    loadingMoviesDynamicLink,
+    totalPagesMoviesDynamicLink,
+  } = useSelector((state: RootState) => state.movies);
 
   console.log("error:", error);
-
-  const dynamicLink = moviesDynamicLink.results;
-  const topRated = moviesTopRated.results;
 
   useEffect(() => {
     dispatch(fetchDynamicLinkMovies({ path: activeLink, page: 1 }));
@@ -50,6 +53,29 @@ export default function HomeScreen() {
   useEffect(() => {
     dispatch(fetchTopRatedMovies(1));
   }, [dispatch]);
+
+  const loadMore = useCallback(
+    debounce(() => {
+      console.log("load moreee....");
+
+      if (
+        !loadingMoviesDynamicLink &&
+        pageMoviesDynamicLink <= totalPagesMoviesDynamicLink
+      ) {
+        dispatch(
+          fetchDynamicLinkMovies({
+            path: activeLink,
+            page: pageMoviesDynamicLink,
+          })
+        );
+      }
+    }, 1000),
+    [
+      pageMoviesDynamicLink,
+      loadingMoviesDynamicLink,
+      totalPagesMoviesDynamicLink,
+    ]
+  );
 
   const handleOnPressDetail = (id: number) => {
     console.log("detail id:", id);
@@ -87,65 +113,67 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
+  const HeaderComponent = () => {
+    return (
+      <>
+        <View style={styles.moviePlayContainer}>
+          <FlatList
+            data={moviesTopRated}
+            horizontal
+            renderItem={({ item }) => <RenderItemTopRated item={item} />}
+            keyExtractor={(movie) => movie.id.toString()}
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginTop: 10 }}
+        >
+          {MovieList.map((item) => (
+            <TouchableOpacity
+              key={item.name}
+              style={styles.categoryContainer}
+              onPress={() => {
+                setActiveLink(item.link);
+                setActiveList(item.name);
+              }}
+            >
+              <ThemedText>{item.title}</ThemedText>
+              {activeList === item.name && <View style={styles.activeList} />}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </>
+    );
+  };
+
+  const FooterComponent = () => {
+    if (loadingMoviesDynamicLink) {
+      return <ActivityIndicator size="large" color="gray" />;
+    }
+  };
+
   return (
     <ThemedScreen style={styles.container}>
+      <View style={styles.titleContainer}>
+        <ThemedText type="subtitle">What do you want to watch?</ThemedText>
+        <TouchableOpacity onPress={() => router.push("/search")}>
+          <Feather name="search" size={25} color="white" />
+        </TouchableOpacity>
+      </View>
       <FlatList
-        data={dynamicLink}
+        style={{ paddingTop: hp("5%") }}
+        data={moviesDynamicLink}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={<FooterComponent />}
+        contentContainerStyle={{ padding: 0, position: "relative" }}
         renderItem={({ item }) => <RenderItemGrid item={item} />}
-        ListHeaderComponent={
-          <>
-            <View style={styles.titleContainer}>
-              <ThemedText type="subtitle">
-                What do you want to watch?
-              </ThemedText>
-              <TouchableOpacity onPress={() => router.push("/search")}>
-                <Feather name="search" size={25} color="white" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.moviePlayContainer}>
-              <FlatList
-                data={topRated}
-                horizontal
-                renderItem={({ item }) => <RenderItemTopRated item={item} />}
-                keyExtractor={(movie) => movie.id.toString()}
-                showsHorizontalScrollIndicator={false}
-              />
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginTop: 10 }}
-            >
-              {MovieList.map((item) => (
-                <TouchableOpacity
-                  key={item.name}
-                  style={styles.categoryContainer}
-                  onPress={() => {
-                    setActiveLink(item.link);
-                    setActiveList(item.name);
-                  }}
-                >
-                  <ThemedText>{item.title}</ThemedText>
-                  {activeList === item.name && (
-                    <View
-                      style={{
-                        height: 2,
-                        marginTop: 3,
-                        backgroundColor: "grey",
-                        borderRadius: 5,
-                      }}
-                    />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </>
-        }
-        contentContainerStyle={{ padding: 10 }}
+        ListHeaderComponent={<HeaderComponent />}
       />
     </ThemedScreen>
   );
@@ -159,8 +187,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: hp("2%"),
     paddingHorizontal: wp("5%"),
-    paddingTop: wp("5%"),
+    paddingVertical: hp("2%"),
+    backgroundColor: "transparent",
+    position: "absolute",
+    top: hp("3%"),
+    left: 0,
+    right: 0,
+    zIndex: 10,
   },
   moviePlayContainer: {
     height: hp("30%"),
@@ -183,5 +218,11 @@ const styles = StyleSheet.create({
     width: "100%",
     aspectRatio: 2 / 3,
     borderRadius: 12,
+  },
+  activeList: {
+    height: 2,
+    marginTop: 3,
+    backgroundColor: "salmon",
+    borderRadius: 5,
   },
 });

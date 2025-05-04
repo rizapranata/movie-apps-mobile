@@ -17,10 +17,6 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
-        tabBarStyle: {
-          paddingTop: 6,
-          height: 65,
-        }
       }}>
       <Tabs.Screen
         name="index"
@@ -37,9 +33,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="whatchList"
         options={{
-          title: 'Explore',
+          title: 'Watch List',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="save.fill" color={color} />,
         }}
       />
