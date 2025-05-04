@@ -1,7 +1,7 @@
 import { ThemedScreen } from "@/components/ThemedScreen";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { IMAGE_BASE_URL } from "@/constants/Colors";
+import { Colors, IMAGE_BASE_URL } from "@/constants/Colors";
 import { MovieList } from "@/constants/MovieList";
 import { MoviesItem } from "@/redux/models/moviesModel";
 import {
@@ -9,10 +9,10 @@ import {
   fetchTopRatedMovies,
 } from "@/redux/movies/moviesApi";
 import { AppDispatch, RootState } from "@/redux/store";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import debounce from "lodash.debounce";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -20,6 +20,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import {
@@ -31,6 +32,9 @@ import { useDispatch, useSelector } from "react-redux";
 export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const flatListRef = useRef<FlatList>(null);
+  const theme = useColorScheme() ?? "light";
+
   const [activeList, setActiveList] = useState<string>("now-playing");
   const [activeLink, setActiveLink] = useState<string>("/movie/now_playing");
 
@@ -48,6 +52,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     dispatch(fetchDynamicLinkMovies({ path: activeLink, page: 1 }));
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [activeLink]);
 
   useEffect(() => {
@@ -71,6 +76,7 @@ export default function HomeScreen() {
       }
     }, 1000),
     [
+      activeLink,
       pageMoviesDynamicLink,
       loadingMoviesDynamicLink,
       totalPagesMoviesDynamicLink,
@@ -104,7 +110,10 @@ export default function HomeScreen() {
   const RenderItemGrid = ({ item }: { item: MoviesItem }) => (
     <TouchableOpacity
       onPress={() => handleOnPressDetail(item.id)}
-      style={{ flex: 1, margin: 4 }}
+      style={{
+        margin: 4,
+        width: wp("31%"),
+      }}
     >
       <Image
         source={{ uri: IMAGE_BASE_URL + item.poster_path }}
@@ -160,18 +169,23 @@ export default function HomeScreen() {
       <View style={styles.titleContainer}>
         <ThemedText type="subtitle">What do you want to watch?</ThemedText>
         <TouchableOpacity onPress={() => router.push("/search")}>
-          <Feather name="search" size={25} color="white" />
+          <Ionicons
+            name="search"
+            size={25}
+            color={theme === "light" ? Colors.light.icon : Colors.dark.icon}
+          />
         </TouchableOpacity>
       </View>
       <FlatList
-        style={{ paddingTop: hp("5%") }}
+        ref={flatListRef}
         data={moviesDynamicLink}
-        keyExtractor={(item) => item.id.toString()}
         numColumns={3}
+        initialNumToRender={12}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={<FooterComponent />}
-        contentContainerStyle={{ padding: 0, position: "relative" }}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
+        contentContainerStyle={styles.contentContainer}
         renderItem={({ item }) => <RenderItemGrid item={item} />}
         ListHeaderComponent={<HeaderComponent />}
       />
@@ -183,11 +197,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  contentContainer: {
+    paddingTop: hp("5%"),
+    paddingBottom: hp("10%"),
+  },
   titleContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: hp("2%"),
+    marginTop: hp("1%"),
     paddingHorizontal: wp("5%"),
     paddingVertical: hp("2%"),
     backgroundColor: "transparent",

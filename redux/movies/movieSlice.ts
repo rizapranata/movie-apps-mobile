@@ -31,8 +31,11 @@ const moviesSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchDynamicLinkMovies.fulfilled, (state, action) => {
-        state.moviesDynamicLink = action.payload.results;
-        state.pageMoviesDynamicLink = action.payload.page + 1;
+        (state.moviesDynamicLink =
+          action.payload.page === 1
+            ? action.payload.results
+            : [...state.moviesDynamicLink, ...action.payload.results]),
+          (state.pageMoviesDynamicLink = action.payload.page + 1);
         state.totalPagesMoviesDynamicLink = action.payload.total_pages;
         state.loadingMoviesDynamicLink = false;
       })
