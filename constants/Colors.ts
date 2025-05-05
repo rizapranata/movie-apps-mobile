@@ -5,6 +5,7 @@
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
+export const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
 export const Colors = {
   light: {
