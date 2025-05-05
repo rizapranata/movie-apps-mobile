@@ -95,14 +95,23 @@ export default function HomeScreen() {
     );
   }
 
+  const formatingVote = (vote: number) => {
+    return Math.floor(vote * 10) / 10;
+  };
+
   const RenderItemTopRated = ({ item }: { item: MoviesItem }) => {
     return (
       <TouchableOpacity onPress={() => handleOnPressDetail(item.id)}>
-        <Image
-          style={styles.imageTopRated}
-          source={{ uri: IMAGE_BASE_URL + item.poster_path }}
-          resizeMode="cover"
-        />
+        <View style={{ position: "relative" }}>
+          <Image
+            style={styles.imageTopRated}
+            source={{ uri: IMAGE_BASE_URL + item.poster_path }}
+            resizeMode="cover"
+          />
+          <ThemedText style={styles.rated}>
+            ⭐{formatingVote(item.vote_average)}
+          </ThemedText>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -115,10 +124,15 @@ export default function HomeScreen() {
         width: wp("31%"),
       }}
     >
-      <Image
-        source={{ uri: IMAGE_BASE_URL + item.poster_path }}
-        style={styles.imageGrid}
-      />
+      <View style={{ position: "relative" }}>
+        <Image
+          source={{ uri: IMAGE_BASE_URL + item.poster_path }}
+          style={styles.imageGrid}
+        />
+        <ThemedText style={styles.ratedGrid}>
+          ⭐{formatingVote(item.vote_average)}
+        </ThemedText>
+      </View>
     </TouchableOpacity>
   );
 
@@ -242,5 +256,27 @@ const styles = StyleSheet.create({
     marginTop: 3,
     backgroundColor: "salmon",
     borderRadius: 5,
+  },
+  rated: {
+    position: "absolute",
+    top: 0,
+    right: 12,
+    color: "white",
+    paddingHorizontal: 4,
+    backgroundColor: "salmon",
+    borderRadius: 6,
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  ratedGrid: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    color: "white",
+    paddingHorizontal: 4,
+    backgroundColor: "salmon",
+    borderRadius: 6,
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });
