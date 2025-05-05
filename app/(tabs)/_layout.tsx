@@ -26,15 +26,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={25} color={color} />
           ),
-          // Platform.OS === "ios" ? (
-          //   <Ionicons
-          //     name="home"
-          //     size={25}
-          //     color={theme === "light" ? Colors.light.icon : Colors.dark.icon}
-          //   />
-          // ) : (
-          //   <IconSymbol size={28} name="house.fill" color={color} />
-          // ),
         }}
       />
       <Tabs.Screen
