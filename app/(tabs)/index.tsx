@@ -83,8 +83,12 @@ export default function HomeScreen() {
     ]
   );
 
-  const handleOnPressDetail = (id: number) => {
+  const handleOnPressDetail = (id: number, title: string) => {
     console.log("detail id:", id);
+    router.push({
+      pathname: "/screens/detailScreen",
+      params: { id, title },
+    });
   };
 
   if (loading) {
@@ -101,7 +105,9 @@ export default function HomeScreen() {
 
   const RenderItemTopRated = ({ item }: { item: MoviesItem }) => {
     return (
-      <TouchableOpacity onPress={() => handleOnPressDetail(item.id)}>
+      <TouchableOpacity
+        onPress={() => handleOnPressDetail(item.id, item.title)}
+      >
         <View style={{ position: "relative" }}>
           <Image
             style={styles.imageTopRated}
@@ -118,7 +124,7 @@ export default function HomeScreen() {
 
   const RenderItemGrid = ({ item }: { item: MoviesItem }) => (
     <TouchableOpacity
-      onPress={() => handleOnPressDetail(item.id)}
+      onPress={() => handleOnPressDetail(item.id, item.title)}
       style={{
         margin: 4,
         width: wp("31%"),

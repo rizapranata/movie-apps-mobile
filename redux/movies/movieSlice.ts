@@ -1,12 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { MovieDetail } from "../models/moviesDetailModel";
 import { MoviesItem } from "../models/moviesModel";
-import { fetchDynamicLinkMovies, fetchTopRatedMovies } from "./moviesApi";
+import {
+  fetchDetailMovie,
+  fetchDynamicLinkMovies,
+  fetchTopRatedMovies,
+} from "./moviesApi";
 
 const moviesSlice = createSlice({
   name: "movies",
   initialState: {
     moviesDynamicLink: [] as MoviesItem[],
     moviesTopRated: [] as MoviesItem[],
+    movieDetail: {} as MovieDetail,
     loading: true,
     loadingMoviesDynamicLink: false,
     pageMoviesTopRated: 1,
@@ -54,6 +60,18 @@ const moviesSlice = createSlice({
         state.loading = false;
       })
       .addCase(fetchTopRatedMovies.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string | null;
+      })
+      .addCase(fetchDetailMovie.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDetailMovie.fulfilled, (state, action) => {
+        state.movieDetail = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchDetailMovie.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string | null;
       });

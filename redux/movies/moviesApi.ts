@@ -33,7 +33,7 @@ export const fetchDynamicLinkMovies = createAsyncThunk(
   "tmdb/fetchMovies",
   async ({ path, page }: FetchParams, thunkApi) => {
     console.log("pagess:", page);
-    
+
     try {
       const response = await tmdbApi.get(path, {
         params: {
@@ -67,6 +67,23 @@ export const fetchTopRatedMovies = createAsyncThunk(
         page: response.data.page,
         total_pages: response.data.total_pages,
       };
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const fetchDetailMovie = createAsyncThunk(
+  "/movie/:id",
+  async (id: number, thunkApi) => {
+    try {
+      const response = await tmdbApi.get(`/movie/${id}`, {
+        params: {
+          API_KEY,
+          language: "en-US",
+        },
+      });
+      return response.data;
     } catch (error: any) {
       return thunkApi.rejectWithValue(error.response.data);
     }
