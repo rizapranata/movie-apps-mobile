@@ -1,12 +1,13 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, TextInput, TextInputProps, View } from "react-native";
+import { StyleSheet, TextInput, TextInputProps } from "react-native";
+import { ThemedView } from "./ThemedView";
 
 interface SearchProps extends TextInputProps {}
 
 export default function SearchInput({ style, ...props }: SearchProps) {
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <TextInput
         cursorColor="black"
         placeholderTextColor="#555"
@@ -14,7 +15,7 @@ export default function SearchInput({ style, ...props }: SearchProps) {
         {...props}
       />
       <Feather name="search" size={20} color="#555" style={styles.icon} />
-    </View>
+    </ThemedView>
   );
 }
 

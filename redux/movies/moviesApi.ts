@@ -89,3 +89,23 @@ export const fetchDetailMovie = createAsyncThunk(
     }
   }
 );
+
+export const fetchSearchMovies = createAsyncThunk(
+  "movies/fetch",
+  async (query: string, thunkApi) => {
+    try {
+      const response = await tmdbApi.get(
+        `https://api.themoviedb.org/3/search/movie`,
+        {
+          params: {
+            query,
+            API_KEY,
+          },
+        }
+      );
+      return response.data.results;
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(error.response.data);
+    }
+  }
+);

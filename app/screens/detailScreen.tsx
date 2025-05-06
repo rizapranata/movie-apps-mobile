@@ -5,7 +5,7 @@ import { Colors, IMAGE_BASE_URL } from "@/constants/Colors";
 import { fetchDetailMovie } from "@/redux/movies/moviesApi";
 import { AppDispatch, RootState } from "@/redux/store";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect } from "react";
 import {
   ActivityIndicator,
@@ -13,7 +13,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme,
+  useColorScheme
 } from "react-native";
 import {
   heightPercentageToDP as hp,
@@ -22,7 +22,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 
 function DetailScreen() {
-  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { id, title } = useLocalSearchParams();
   const movieId = Number(id);
@@ -122,7 +121,9 @@ function DetailScreen() {
               {movieDetail.status}
             </ThemedText>
           </ThemedView>
-          <TopTabs data={movieDetail} />
+          <ThemedView style={{ flex: 1, height: hp("40%") }}>
+            <TopTabs data={movieDetail} />
+          </ThemedView>
         </ThemedView>
       </ScrollView>
     </>
