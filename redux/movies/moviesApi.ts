@@ -94,15 +94,29 @@ export const fetchSearchMovies = createAsyncThunk(
   "movies/fetch",
   async (query: string, thunkApi) => {
     try {
-      const response = await tmdbApi.get(
-        `https://api.themoviedb.org/3/search/movie`,
-        {
-          params: {
-            query,
-            API_KEY,
-          },
-        }
-      );
+      const response = await tmdbApi.get(`/search/movie`, {
+        params: {
+          query,
+          API_KEY,
+        },
+      });
+      return response.data.results;
+    } catch (error: any) {
+      return thunkApi.rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const fetchReviewsMovie = createAsyncThunk(
+  "reviews/movie",
+  async (id: number, thunkApi) => {
+    try {
+      const response = await tmdbApi.get(`/movie/${id}/reviews`, {
+        params: {
+          API_KEY,
+          language: "en-US",
+        },
+      });
       return response.data.results;
     } catch (error: any) {
       return thunkApi.rejectWithValue(error.response.data);
