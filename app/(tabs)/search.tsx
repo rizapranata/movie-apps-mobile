@@ -8,6 +8,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors, IMAGE_BASE_URL } from "@/constants/Colors";
 import { MoviesItem } from "@/redux/models/moviesModel";
 import { fetchSearchMovies } from "@/redux/movies/moviesApi";
+import { resetMovies } from "@/redux/movies/movieSearchSlice";
 import { AppDispatch, RootState } from "@/redux/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -52,6 +53,11 @@ function SearchMovie() {
     },
     [debouncedSearch]
   );
+
+  const handleResetQuery = () => {
+    dispatch(resetMovies());
+    setQuery("");
+  };
 
   const handleOnPressDetail = useCallback(
     (id: number, title: string) => {
@@ -113,6 +119,7 @@ function SearchMovie() {
         <SearchInput
           placeholder="Search.."
           onChangeText={handleSearch}
+          resetQuery={handleResetQuery}
           value={query}
         />
       </ThemedView>
@@ -159,7 +166,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: wp("32%"),
-    height: hp("20%"),
+    height: hp("22%"),
     borderRadius: 8,
     marginHorizontal: wp("3%"),
   },

@@ -17,7 +17,11 @@ const initialState: MovieSearchState = {
 const movieSearchSlice = createSlice({
   name: "movieSearch",
   initialState,
-  reducers: {},
+  reducers: {
+    resetMovies: (state) => {
+      state.movies = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchSearchMovies.pending, (state) => {
@@ -35,4 +39,5 @@ const movieSearchSlice = createSlice({
   },
 });
 
+export const { resetMovies } = movieSearchSlice.actions;
 export default movieSearchSlice.reducer;
