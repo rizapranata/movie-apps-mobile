@@ -2,13 +2,11 @@ import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { useColorScheme } from "react-native";
-import {
-  heightPercentageToDP as hp
-} from "react-native-responsive-screen";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { ThemedText } from "./ThemedText";
 import { ThemedView } from "./ThemedView";
 
-function ThemedDataEmpty() {
+function ThemedDataEmpty({ message }: { message: string }) {
   const theme = useColorScheme() ?? "light";
 
   return (
@@ -24,8 +22,7 @@ function ThemedDataEmpty() {
         size={50}
         color={theme === "light" ? Colors.light.icon : Colors.dark.icon}
       />
-      <ThemedText type="subtitle">Oops..</ThemedText>
-      <ThemedText>Movie empty!</ThemedText>
+      <ThemedText>{message}</ThemedText>
     </ThemedView>
   );
 }

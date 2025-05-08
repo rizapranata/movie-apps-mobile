@@ -1,3 +1,4 @@
+// SearchMovie.tsx
 import LoadingComponent from "@/components/LoadingComponent";
 import SearchInput from "@/components/SearchInput";
 import ThemedDataEmpty from "@/components/ThemedDataEmpty";
@@ -11,12 +12,12 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import debounce from "lodash.debounce";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   Image,
+  Pressable,
   StyleSheet,
-  TouchableOpacity,
   useColorScheme,
 } from "react-native";
 import {
@@ -24,86 +25,90 @@ import {
   widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
 import { useDispatch, useSelector } from "react-redux";
+
 function SearchMovie() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const theme = useColorScheme() ?? "light";
-
   const { movies, loading } = useSelector(
     (state: RootState) => state.movieSearch
   );
-  const [query, setQueary] = useState<string>();
+  const [query, setQuery] = useState<string>();
 
-  const debouncedSearch = useCallback(
-    debounce((text: string) => {
-      if (text.length > 2) {
-        dispatch(fetchSearchMovies(text));
-      }
-    }, 500),
-    []
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((text: string) => {
+        if (text.length > 2) {
+          dispatch(fetchSearchMovies(text));
+        }
+      }, 500),
+    [dispatch]
   );
 
-  const handleSearch = (text: string) => {
-    setQueary(text);
-    debouncedSearch(text);
-  };
+  const handleSearch = useCallback(
+    (text: string) => {
+      setQuery(text);
+      debouncedSearch(text);
+    },
+    [debouncedSearch]
+  );
 
-  const handleOnPressDetail = (id: number, title: string) => {
-    console.log("detail id:", id);
-    router.push({
-      pathname: "/screens/detailScreen",
-      params: { id, title },
-    });
-  };
+  const handleOnPressDetail = useCallback(
+    (id: number, title: string) => {
+      requestAnimationFrame(() => {
+        console.log("detail id:", id);
+        router.push({
+          pathname: "/screens/detailScreen",
+          params: { id, title },
+        });
+      });
+    },
+    [router]
+  );
 
-  const formatingVote = (vote: number) => {
+  const formatVote = useCallback((vote: number) => {
     return Math.floor(vote * 10) / 10;
-  };
+  }, []);
 
-  const RenderItem = ({ item }: { item: MoviesItem }) => {
-    return (
-      <TouchableOpacity
-        onPress={() => handleOnPressDetail(item.id, item.title)}
-      >
-        <ThemedView style={{ flexDirection: "row", paddingBottom: hp("2%") }}>
-          <ThemedView>
-            <Image
-              source={{ uri: IMAGE_BASE_URL + item.poster_path }}
-              style={styles.image}
-              resizeMode="stretch"
-            />
-          </ThemedView>
-          <ThemedView style={{ flexDirection: "column" }}>
-            <ThemedView style={{ maxWidth: wp("60%") }}>
-              <ThemedText style={{ paddingBottom: 10, flexWrap: "wrap" }}>
-                {item.title}
-              </ThemedText>
+  const RenderItem = useCallback(
+    ({ item }: { item: MoviesItem }) => (
+      <Pressable onPress={() => handleOnPressDetail(item.id, item.title)}>
+        <ThemedView style={styles.itemContainer}>
+          <Image
+            source={{ uri: IMAGE_BASE_URL + item.poster_path }}
+            style={styles.image}
+            resizeMode="stretch"
+          />
+          <ThemedView style={styles.itemContent}>
+            <ThemedView style={styles.itemTitleWrapper}>
+              <ThemedText style={styles.itemTitle}>{item.title}</ThemedText>
             </ThemedView>
-            <ThemedView style={{ flexDirection: "row", alignItems: "center" }}>
+            <ThemedView style={styles.itemMeta}>
               <Ionicons name="star" size={15} color="salmon" />
-              <ThemedText style={{ color: "salmon", paddingLeft: 5 }}>
-                {formatingVote(item.vote_average)}
+              <ThemedText style={styles.itemRating}>
+                {formatVote(item.vote_average)}
               </ThemedText>
             </ThemedView>
-            <ThemedView style={{ flexDirection: "row", alignItems: "center" }}>
+            <ThemedView style={styles.itemMeta}>
               <Ionicons
                 name="calendar"
                 size={15}
                 color={theme === "light" ? Colors.light.icon : Colors.dark.icon}
               />
-              <ThemedText style={{ color: "gray", paddingHorizontal: 5 }}>
+              <ThemedText style={styles.itemDate}>
                 {item.release_date?.toString().split("-")[0]}
               </ThemedText>
             </ThemedView>
           </ThemedView>
         </ThemedView>
-      </TouchableOpacity>
-    );
-  };
+      </Pressable>
+    ),
+    [handleOnPressDetail, formatVote, theme]
+  );
 
   return (
     <ThemedScreen style={styles.container}>
-      <ThemedView style={{ paddingHorizontal: wp("5%") }}>
+      <ThemedView style={styles.searchHeader}>
         <ThemedText type="subtitle">Search Movie</ThemedText>
         <SearchInput
           placeholder="Search.."
@@ -111,12 +116,8 @@ function SearchMovie() {
           value={query}
         />
       </ThemedView>
-      <ThemedView
-        style={{
-          paddingHorizontal: wp("2%"),
-          paddingBottom: hp("10%"),
-        }}
-      >
+
+      <ThemedView style={styles.listContainer}>
         {loading ? (
           <ThemedView style={{ height: hp("50%") }}>
             <LoadingComponent loading={loading} />
@@ -125,11 +126,11 @@ function SearchMovie() {
           <FlatList
             data={movies}
             keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => <RenderItem item={item} />}
-            contentContainerStyle={{ paddingVertical: hp("3%") }}
+            renderItem={RenderItem}
+            contentContainerStyle={styles.flatListContent}
           />
         ) : (
-          <ThemedDataEmpty />
+          <ThemedDataEmpty message="Movie Empty!" />
         )}
       </ThemedView>
     </ThemedScreen>
@@ -142,10 +143,46 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  searchHeader: {
+    paddingHorizontal: wp("5%"),
+  },
+  listContainer: {
+    paddingHorizontal: wp("2%"),
+    paddingBottom: hp("10%"),
+  },
+  flatListContent: {
+    paddingVertical: hp("3%"),
+  },
+  itemContainer: {
+    flexDirection: "row",
+    paddingBottom: hp("2%"),
+  },
   image: {
     width: wp("32%"),
     height: hp("20%"),
     borderRadius: 8,
     marginHorizontal: wp("3%"),
+  },
+  itemContent: {
+    flexDirection: "column",
+  },
+  itemTitleWrapper: {
+    maxWidth: wp("60%"),
+  },
+  itemTitle: {
+    paddingBottom: 10,
+    flexWrap: "wrap",
+  },
+  itemMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  itemRating: {
+    color: "salmon",
+    paddingLeft: 5,
+  },
+  itemDate: {
+    color: "gray",
+    paddingHorizontal: 5,
   },
 });

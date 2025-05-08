@@ -2,7 +2,11 @@ import AboutMovie from "@/components/AboutMovie";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors, IMAGE_BASE_URL } from "@/constants/Colors";
-import { fetchDetailMovie, fetchReviewsMovie } from "@/redux/movies/moviesApi";
+import {
+  fetchCreditsMovie,
+  fetchDetailMovie,
+  fetchReviewsMovie,
+} from "@/redux/movies/moviesApi";
 import { AppDispatch, RootState } from "@/redux/store";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -12,7 +16,7 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme
+  useColorScheme,
 } from "react-native";
 import {
   heightPercentageToDP as hp,
@@ -25,8 +29,8 @@ function DetailScreen() {
   const { id, title } = useLocalSearchParams();
   const movieId = Number(id);
   const theme = useColorScheme() ?? "light";
-  const { movieDetail, loading, movieReviews } = useSelector(
-    (state: RootState) => state.movies
+  const { movieDetail, loading, movieReviews, movieCredit } = useSelector(
+    (state: RootState) => state.movieDetail
   );
 
   useEffect(() => {
@@ -35,6 +39,10 @@ function DetailScreen() {
 
   useEffect(() => {
     dispatch(fetchReviewsMovie(movieId));
+  }, [movieId]);
+
+  useEffect(() => {
+    dispatch(fetchCreditsMovie(movieId));
   }, [movieId]);
 
   const formatingVote = (vote: number) => {
@@ -124,7 +132,11 @@ function DetailScreen() {
           </ThemedText>
         </ThemedView>
         <ThemedView style={{ flex: 1, height: hp("50%") }}>
-          <AboutMovie review={movieReviews} data={movieDetail} />
+          <AboutMovie
+            review={movieReviews}
+            data={movieDetail}
+            credit={movieCredit}
+          />
         </ThemedView>
       </ThemedView>
     </>

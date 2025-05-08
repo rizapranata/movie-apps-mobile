@@ -1,12 +1,18 @@
 // App.tsx atau MainTabs.tsx
 
+import { IMAGE_BASE_URL } from "@/constants/Colors";
+import { MovieCredit } from "@/redux/models/movieCreditModel";
 import { Review } from "@/redux/models/movieReviewModel";
 import { MovieDetail } from "@/redux/models/moviesDetailModel";
 import { Ionicons } from "@expo/vector-icons";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import React from "react";
-import { FlatList, ScrollView, StyleSheet } from "react-native";
-import { widthPercentageToDP as wp } from "react-native-responsive-screen";
+import { FlatList, Image, ScrollView, StyleSheet } from "react-native";
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from "react-native-responsive-screen";
+import ThemedDataEmpty from "./ThemedDataEmpty";
 import { ThemedText } from "./ThemedText";
 import { ThemedView } from "./ThemedView";
 
@@ -14,6 +20,7 @@ const Tab = createMaterialTopTabNavigator();
 interface TopTabsProps {
   data: MovieDetail;
   review?: Review[];
+  credit?: MovieCredit;
 }
 
 const About = ({ data }: TopTabsProps) => (
@@ -51,40 +58,77 @@ const About = ({ data }: TopTabsProps) => (
 
 const Reviews = ({ review }: TopTabsProps) => (
   <ThemedView style={styles.reviewContainer}>
+    {(review ?? []).length > 0 ? (
+      <FlatList
+        data={review}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
+        contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 50 }}
+        renderItem={({ item }) => (
+          <ThemedView key={item.id} style={styles.reviewContentContainer}>
+            <ThemedView style={styles.reviewAuthorImage}>
+              <Ionicons name="person" size={20} color="grey" />
+              <ThemedText>⭐{item?.author_details.rating}</ThemedText>
+            </ThemedView>
+            <ThemedView>
+              <ThemedText style={{ fontWeight: "bold" }}>
+                {item.author_details.name === ""
+                  ? "anonym"
+                  : item.author_details.name}
+              </ThemedText>
+              <ThemedText style={styles.reviewTextContent}>
+                {item?.content}
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
+        )}
+      />
+    ) : (
+      <ThemedDataEmpty message="Reviews empty!" />
+    )}
+  </ThemedView>
+);
+
+const Cast = ({ credit }: TopTabsProps) => (
+  <ThemedView style={styles.castContainer}>
     <FlatList
-      data={review}
-      keyExtractor={(item, index) => `${item.id}-${index}`}
-      contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 50 }}
+      data={credit?.cast}
+      numColumns={3}
+      keyExtractor={(item) => `${item.id}`}
+      contentContainerStyle={styles.castContentContainer}
       renderItem={({ item }) => (
-        <ThemedView key={item.id} style={styles.reviewContentContainer}>
-          <ThemedView style={styles.reviewAuthorImage}>
-            <Ionicons name="person" size={20} color="grey" />
-            <ThemedText>⭐{item?.author_details.rating}</ThemedText>
-          </ThemedView>
-          <ThemedView>
-            <ThemedText style={{ fontWeight: "bold" }}>
-              {item.author_details.name === ""
-                ? "anonym"
-                : item.author_details.name}
-            </ThemedText>
-            <ThemedText style={styles.reviewTextContent}>
-              {item?.content}
-            </ThemedText>
-          </ThemedView>
+        <ThemedView
+          key={item.id}
+          style={{
+            width: "30%",
+            margin: "auto",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {item.profile_path !== null ? (
+            <Image
+              source={{ uri: IMAGE_BASE_URL + item.profile_path }}
+              style={styles.imageCatsGrid}
+            />
+          ) : (
+            <Ionicons
+              name="image"
+              size={40}
+              color="grey"
+              style={{ paddingBottom: hp("1%") }}
+            />
+          )}
+
+          <ThemedText style={{ fontWeight: "bold", textAlign: "center" }}>
+            {item.name}
+          </ThemedText>
         </ThemedView>
       )}
     />
   </ThemedView>
 );
 
-const Cast = ({ data }: TopTabsProps) => (
-  <ThemedView style={styles.reviewContainer}>
-    <ThemedText>Cast Screen</ThemedText>
-    <ThemedText>{data.title}</ThemedText>
-  </ThemedView>
-);
-
-export default function AboutMovie({ data, review }: TopTabsProps) {
+export default function AboutMovie({ data, review, credit }: TopTabsProps) {
   return (
     <Tab.Navigator
       screenOptions={{ tabBarIndicatorStyle: { backgroundColor: "gray" } }}
@@ -93,7 +137,9 @@ export default function AboutMovie({ data, review }: TopTabsProps) {
       <Tab.Screen name="Reviews">
         {() => <Reviews review={review} data={data} />}
       </Tab.Screen>
-      <Tab.Screen name="Cast">{() => <Cast data={data} />}</Tab.Screen>
+      <Tab.Screen name="Cast">
+        {() => <Cast data={data} credit={credit} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
@@ -102,7 +148,9 @@ const styles = StyleSheet.create({
   aboutContainer: {
     flex: 1,
     justifyContent: "flex-start",
-    padding: 20,
+    paddingTop: hp("2%"),
+    paddingBottom: hp("6%"),
+    paddingHorizontal: hp("2%")
   },
   aboutGenre: {
     flexDirection: "row",
@@ -130,5 +178,20 @@ const styles = StyleSheet.create({
   reviewTextContent: {
     textAlign: "justify",
     paddingRight: wp("8%"),
+  },
+  castContainer: {
+  },
+  imageCatsGrid: {
+    width: wp("25%"),
+    alignSelf: "center",
+    aspectRatio: 1 / 1,
+    borderRadius: wp("100%"),
+  },
+  castContentContainer: {
+    gap: 20,
+    alignSelf: "center",
+    justifyContent: "center",
+    paddingTop: hp("3%"),
+    paddingBottom: hp("7%"),
   },
 });

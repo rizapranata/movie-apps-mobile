@@ -12,16 +12,22 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import debounce from "lodash.debounce";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
-  useColorScheme,
   View,
+  useColorScheme,
 } from "react-native";
 import {
   heightPercentageToDP as hp,
@@ -32,11 +38,11 @@ import { useDispatch, useSelector } from "react-redux";
 export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const flatListRef = useRef<FlatList>(null);
   const theme = useColorScheme() ?? "light";
+  const flatListRef = useRef<FlatList>(null);
 
-  const [activeList, setActiveList] = useState<string>("now-playing");
-  const [activeLink, setActiveLink] = useState<string>("/movie/now_playing");
+  const [activeList, setActiveList] = useState("now-playing");
+  const [activeLink, setActiveLink] = useState("/movie/now_playing");
 
   const {
     moviesDynamicLink,
@@ -48,21 +54,31 @@ export default function HomeScreen() {
     totalPagesMoviesDynamicLink,
   } = useSelector((state: RootState) => state.movies);
 
-  console.log("error:", error);
+  useEffect(() => {
+    dispatch(fetchTopRatedMovies(1));
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(fetchDynamicLinkMovies({ path: activeLink, page: 1 }));
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [activeLink]);
 
-  useEffect(() => {
-    dispatch(fetchTopRatedMovies(1));
-  }, [dispatch]);
+  const handleOnPressDetail = useCallback(
+    (id: number, title: string) => {
+      requestAnimationFrame(() => {
+        console.log("id movie:", id);
+
+        router.push({
+          pathname: "/screens/detailScreen",
+          params: { id, title },
+        });
+      });
+    },
+    [router]
+  );
 
   const loadMore = useCallback(
     debounce(() => {
-      console.log("load moreee....");
-
       if (
         !loadingMoviesDynamicLink &&
         pageMoviesDynamicLink <= totalPagesMoviesDynamicLink
@@ -83,31 +99,33 @@ export default function HomeScreen() {
     ]
   );
 
-  const handleOnPressDetail = (id: number, title: string) => {
-    console.log("detail id:", id);
-    router.push({
-      pathname: "/screens/detailScreen",
-      params: { id, title },
-    });
-  };
-
-  if (loading) {
-    return (
-      <ThemedView style={{ flex: 1, justifyContent: "center" }}>
-        <ActivityIndicator size="large" />
-      </ThemedView>
-    );
-  }
-
-  const formatingVote = (vote: number) => {
+  const formatingVote = useCallback((vote: number) => {
     return Math.floor(vote * 10) / 10;
-  };
+  }, []);
 
-  const RenderItemTopRated = ({ item }: { item: MoviesItem }) => {
-    return (
-      <TouchableOpacity
+  const RenderItemGrid = useCallback(
+    ({ item }: { item: MoviesItem }) => (
+      <Pressable
         onPress={() => handleOnPressDetail(item.id, item.title)}
+        style={{ margin: 4, width: wp("31%") }}
       >
+        <View style={{ position: "relative" }}>
+          <Image
+            source={{ uri: IMAGE_BASE_URL + item.poster_path }}
+            style={styles.imageGrid}
+          />
+          <ThemedText style={styles.ratedGrid}>
+            ⭐{formatingVote(item.vote_average)}
+          </ThemedText>
+        </View>
+      </Pressable>
+    ),
+    [handleOnPressDetail, formatingVote]
+  );
+
+  const RenderItemTopRated = useCallback(
+    ({ item }: { item: MoviesItem }) => (
+      <Pressable onPress={() => handleOnPressDetail(item.id, item.title)}>
         <View style={{ position: "relative" }}>
           <Image
             style={styles.imageTopRated}
@@ -118,32 +136,13 @@ export default function HomeScreen() {
             ⭐{formatingVote(item.vote_average)}
           </ThemedText>
         </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const RenderItemGrid = ({ item }: { item: MoviesItem }) => (
-    <TouchableOpacity
-      onPress={() => handleOnPressDetail(item.id, item.title)}
-      style={{
-        margin: 4,
-        width: wp("31%"),
-      }}
-    >
-      <View style={{ position: "relative" }}>
-        <Image
-          source={{ uri: IMAGE_BASE_URL + item.poster_path }}
-          style={styles.imageGrid}
-        />
-        <ThemedText style={styles.ratedGrid}>
-          ⭐{formatingVote(item.vote_average)}
-        </ThemedText>
-      </View>
-    </TouchableOpacity>
+      </Pressable>
+    ),
+    [handleOnPressDetail, formatingVote]
   );
 
-  const HeaderComponent = () => {
-    return (
+  const HeaderComponent = useMemo(
+    () => (
       <>
         <View style={styles.moviePlayContainer}>
           <FlatList
@@ -154,14 +153,13 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
           />
         </View>
-
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={{ marginTop: 10 }}
         >
           {MovieList.map((item) => (
-            <TouchableOpacity
+            <Pressable
               key={item.name}
               style={styles.categoryContainer}
               onPress={() => {
@@ -171,30 +169,40 @@ export default function HomeScreen() {
             >
               <ThemedText>{item.title}</ThemedText>
               {activeList === item.name && <View style={styles.activeList} />}
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
       </>
-    );
-  };
+    ),
+    [activeList, moviesTopRated]
+  );
 
-  const FooterComponent = () => {
+  const FooterComponent = useMemo(() => {
     if (loadingMoviesDynamicLink) {
       return <ActivityIndicator size="large" color="gray" />;
     }
-  };
+    return null;
+  }, [loadingMoviesDynamicLink]);
+
+  if (loading) {
+    return (
+      <ThemedView style={{ flex: 1, justifyContent: "center" }}>
+        <ActivityIndicator size="large" />
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedScreen style={styles.container}>
       <View style={styles.titleContainer}>
         <ThemedText type="subtitle">What do you want to watch?</ThemedText>
-        <TouchableOpacity onPress={() => router.push("/search")}>
+        <Pressable onPress={() => router.push("/search")}>
           <Ionicons
             name="search"
             size={25}
             color={theme === "light" ? Colors.light.icon : Colors.dark.icon}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
       <FlatList
         ref={flatListRef}
@@ -203,11 +211,11 @@ export default function HomeScreen() {
         initialNumToRender={12}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={<FooterComponent />}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.contentContainer}
         renderItem={({ item }) => <RenderItemGrid item={item} />}
-        ListHeaderComponent={<HeaderComponent />}
+        ListHeaderComponent={HeaderComponent}
+        ListFooterComponent={FooterComponent}
       />
     </ThemedScreen>
   );
