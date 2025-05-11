@@ -5,7 +5,13 @@ import { ThemedView } from "./ThemedView";
 const LoadingComponent = ({ loading }: { loading: boolean }) => {
   if (loading) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: "center" }}>
+      <ThemedView
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <ActivityIndicator size="large" />
       </ThemedView>
     );

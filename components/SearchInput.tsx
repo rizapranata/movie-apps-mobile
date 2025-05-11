@@ -1,20 +1,40 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, TextInput, TextInputProps, View } from "react-native";
+import {
+  StyleSheet,
+  TextInput,
+  TextInputProps,
+  TouchableOpacity,
+} from "react-native";
+import { ThemedView } from "./ThemedView";
 
-interface SearchProps extends TextInputProps {}
+interface SearchProps extends TextInputProps {
+  resetQuery: () => void;
+}
 
-export default function SearchInput({ style, ...props }: SearchProps) {
+export default function SearchInput({
+  resetQuery,
+  style,
+  ...props
+}: SearchProps) {
+  const { value } = { ...props };
+
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <TextInput
         cursorColor="black"
         placeholderTextColor="#555"
         style={[styles.input, style]}
         {...props}
       />
-      <Feather name="search" size={20} color="#555" style={styles.icon} />
-    </View>
+      {(value ?? "").length > 0 ? (
+        <TouchableOpacity onPress={resetQuery}>
+          <Feather name="x" size={20} color="#555" style={styles.icon} />
+        </TouchableOpacity>
+      ) : (
+        <Feather name="search" size={20} color="#555" style={styles.icon} />
+      )}
+    </ThemedView>
   );
 }
 
