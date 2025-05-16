@@ -1,8 +1,6 @@
 import tmdbApi from "@/services/tmdbApi";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-const API_KEY = `66de686f9a677bd824aca318c28fd50d`;
-
 type FetchParams = {
   path: string;
   page?: number;
@@ -14,7 +12,6 @@ export const fetchNowPlayingMovies = createAsyncThunk(
     try {
       const response = await tmdbApi.get("movie/now_playing", {
         params: {
-          API_KEY,
           page,
         },
       });
@@ -37,7 +34,6 @@ export const fetchDynamicLinkMovies = createAsyncThunk(
     try {
       const response = await tmdbApi.get(path, {
         params: {
-          API_KEY,
           page,
         },
       });
@@ -58,7 +54,6 @@ export const fetchTopRatedMovies = createAsyncThunk(
     try {
       const response = await tmdbApi.get("movie/top_rated", {
         params: {
-          API_KEY,
           page,
         },
       });
@@ -79,7 +74,6 @@ export const fetchDetailMovie = createAsyncThunk(
     try {
       const response = await tmdbApi.get(`/movie/${id}`, {
         params: {
-          API_KEY,
           language: "en-US",
         },
       });
@@ -97,7 +91,6 @@ export const fetchSearchMovies = createAsyncThunk(
       const response = await tmdbApi.get(`/search/movie`, {
         params: {
           query,
-          API_KEY,
         },
       });
       return response.data.results;
@@ -113,7 +106,6 @@ export const fetchReviewsMovie = createAsyncThunk(
     try {
       const response = await tmdbApi.get(`/movie/${id}/reviews`, {
         params: {
-          API_KEY,
           language: "en-US",
         },
       });
@@ -130,7 +122,6 @@ export const fetchCreditsMovie = createAsyncThunk(
     try {
       const response = await tmdbApi.get(`/movie/${id}/credits`, {
         params: {
-          API_KEY,
           language: "en-US",
         },
       });
